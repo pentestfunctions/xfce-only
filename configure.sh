@@ -203,8 +203,9 @@ install_rust_scan() {
 install_wallpaper_settings() {
     cd "$initial_dir"
     sudo cp resources/background.jpg ~/Pictures/background.jpg
-    xfconf-query -c xfce4-desktop -l -v | grep image-path | grep -oE '^/[^ ]+' | xargs -I % xfconf-query -c xfce4-desktop -p % -s ~/Pictures/background.jpg
-    xfconf-query -c xfce4-desktop -l -v | grep last-image | grep -oE '^/[^ ]+' | xargs -I % xfconf-query -c xfce4-desktop -p % -s ~/Pictures/background.jpg
+    sudo cp resources/background2.jpg ~/Pictures/background2.jpg
+    xfconf-query -c xfce4-desktop -l -v | grep image-path | grep -oE '^/[^ ]+' | xargs -I % xfconf-query -c xfce4-desktop -p % -s ~/Pictures/background2.jpg
+    xfconf-query -c xfce4-desktop -l -v | grep last-image | grep -oE '^/[^ ]+' | xargs -I % xfconf-query -c xfce4-desktop -p % -s ~/Pictures/background2.jpg
 }
 
 # Setup our hostfolder command
