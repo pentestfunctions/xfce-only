@@ -20,7 +20,7 @@ install_tools() {
 
     local packages=(
         libssl-dev
-        enum4linux crackmapexec getallurls dirsearch exploitdb getsploit feroxbuster kerberoast payloadsallthethings pdf-parser peirates pipal pspy radare2 responder smtp-user-enum snmpcheck snmpenum subfinder
+        enum4linux python3-pip crackmapexec getallurls dirsearch exploitdb getsploit feroxbuster kerberoast payloadsallthethings pdf-parser peirates pipal pspy radare2 responder smtp-user-enum snmpcheck snmpenum subfinder
         gpgv2 autoconf bison build-essential postgresql libaprutil1 libgmp3-dev libpcap-dev openssl libpq-dev libreadline-dev libsqlite3-dev libssl-dev locate libsvn1 libtool libxml2 libxml2-dev libxslt1-dev wget libyaml-dev libncurses-dev postgresql-contrib xsel zlib1g zlib1g-dev curl
         curl dos2unix outguess pdfcrack wireshark smbclient samba smbmap socat ssdeep samdump2 python3-scapy proxychains rdesktop proxychains4 steghide exiv2 foremost nbtscan ophcrack hashid libimage-exiftool-perl sucrack stegcracker fcrackzip net-tools binwalk zenity john 7zip nmap hashcat wfuzz hydra ffuf whatweb wafw00f cupp cewl crunch dirb gobuster htop lolcat sqlmap ruby-dev neofetch openvpn sublist3r
     )
@@ -297,6 +297,7 @@ install_dracula_theme() {
         wget https://github.com/dracula/gtk/archive/master.zip -O /tmp/master.zip
         unzip -o /tmp/master.zip -d /tmp/master
         sudo mv /tmp/master/gtk-master /usr/share/themes/Dracula
+        rm /tmp/master.zip
     fi
 
     # Activate Dracula theme
@@ -308,6 +309,7 @@ install_dracula_theme() {
         # Download and install Dracula icons
         wget https://github.com/dracula/gtk/files/5214870/Dracula.zip -O /tmp/Dracula.zip
         sudo unzip -o /tmp/Dracula.zip -d /usr/share/icons
+        rm /tmp/Dracula.zip
     fi
 
     # Activate Dracula icons
@@ -334,10 +336,13 @@ terminal_transparency
 install_dracula_theme
 
 # Replace applications menu button with WhiskerMenu
-xfconf-query -c xfce4-panel -p $(xfconf-query -c xfce4-panel -l -v | grep "applicationsmenu" | awk '{print $1}') -n -t string -s "whiskermenu" && xfce4-panel -r
+if xfconf-query -c xfce4-panel -p $(xfconf-query -c xfce4-panel -l -v | grep "applicationsmenu" | awk '{print $1}') -n -t string -s "whiskermenu" && xfce4-panel -r; then
+    echo -e "\033[0;32mWhiskermenu most likely already in place\033[0m"
+else
+    echo -e "\033[0;32mWhiskermenu should be setup correctly\033[0m"
+fi
 
-rm /tmp/master.zip
-rm /tmp/Dracula.zip
+pip install screenpen
 
 cd "$initial_dir"
 cp resources/.bashrc ~/.bashrc
