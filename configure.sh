@@ -203,8 +203,8 @@ install_rust_scan() {
 install_wallpaper_settings() {
     cd "$initial_dir"
     sudo cp resources/background.jpg ~/Pictures/background.jpg
-    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image -s /home/$USER/Pictures/background.jpg
-    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/image-path -s /home/$USER/Pictures/background.jpg
+    xfconf-query -c xfce4-desktop -l -v | grep image-path | grep -oE '^/[^ ]+' | xargs -I % xfconf-query -c xfce4-desktop -p % -s ~/Pictures/background.jpg
+    xfconf-query -c xfce4-desktop -l -v | grep last-image | grep -oE '^/[^ ]+' | xargs -I % xfconf-query -c xfce4-desktop -p % -s ~/Pictures/background.jpg
 }
 
 # Setup our hostfolder command
@@ -280,12 +280,38 @@ fix_python_environment() {
     fi
 }
 
-function enable_extensions() {
+# Configure our terminal settings
+function terminal_transparency() {
     cd "$initial_dir"
     cp resources/terminalrc ~/.config/xfce4/terminal/terminalrc
     sudo apt install xfce4-terminal -y
     mkdir -p ~/.config/xfce4/terminal
     touch ~/.config/xfce4/terminal/terminalrc
+}
+
+
+install_dracula_theme() {
+    # Check if Dracula theme is installed
+    if [ ! -d "/usr/share/themes/Dracula" ]; then
+        # Download and install Dracula theme
+        wget https://github.com/dracula/gtk/archive/master.zip -O /tmp/master.zip
+        unzip -o /tmp/master.zip -d /tmp/master
+        sudo mv /tmp/master/gtk-master /usr/share/themes/Dracula
+    fi
+
+    # Activate Dracula theme
+    xfconf-query -c xsettings -p /Net/ThemeName -s "Dracula"
+    xfconf-query -c xfwm4 -p /general/theme -s "Dracula"
+
+    # Check if Dracula icons are installed
+    if [ ! -d "/usr/share/icons/Dracula" ]; then
+        # Download and install Dracula icons
+        wget https://github.com/dracula/gtk/files/5214870/Dracula.zip -O /tmp/Dracula.zip
+        sudo unzip -o /tmp/Dracula.zip -d /usr/share/icons
+    fi
+
+    # Activate Dracula icons
+    xfconf-query -c xsettings -p /Net/IconThemeName -s "Dracula"
 }
 
 sudo apt remove libreoffice-* -y > /dev/null 2>&1
@@ -303,7 +329,15 @@ install_seclists
 install_metasploit
 install_hosting_folder
 [ -x "$(command -v wpscan)" ] && echo -e "\033[0;32mwpscan is already installed\033[0m" || (sudo gem install wpscan && echo -e "\033[0;32mInstallation successful\033[0m")
-enable_extensions
+terminal_transparency
+
+install_dracula_theme
+
+# Replace applications menu button with WhiskerMenu
+xfconf-query -c xfce4-panel -p $(xfconf-query -c xfce4-panel -l -v | grep "applicationsmenu" | awk '{print $1}') -n -t string -s "whiskermenu" && xfce4-panel -r
+
+rm /tmp/master.zip
+rm /tmp/Dracula.zip
 
 cd "$initial_dir"
 cp resources/.bashrc ~/.bashrc
