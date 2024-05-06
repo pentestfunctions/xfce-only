@@ -185,7 +185,7 @@ escalation() {
     } | lolcat
 }
 
-
+export PATH="$HOME/.local/bin:$PATH"
 alias cls='clear'
 alias python='python3'
 alias ifconfig='/sbin/ifconfig'
