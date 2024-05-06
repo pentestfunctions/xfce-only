@@ -346,6 +346,13 @@ pip install screenpen
 
 cd "$initial_dir"
 cp resources/.bashrc ~/.bashrc
-source ~/.bashrc
+sudo cp resources/xfce4-panel-settings.tar.gz /tmp/
+tar -xzf /tmp/xfce4-panel-settings.tar.gz -C ~/.config/xfce4/panel
 install_wallpaper_settings
 echo "All Tools seem to be installed!"
+echo "Make sure you source your .bashrc file!"
+echo "========================================="
+echo "source ~/.bashrc"
+echo "========================================="
+echo "We also recommend connecting with RDP using the IPv4 or hostname, your hostname is:"
+cat /etc/hostname | lolcat
