@@ -1,1 +1,12 @@
 # xfce-only
+- su root
+- sudo apt install git curl wget -y
+- git clone https://github.com/pentestfunctions/xfce-only.git
+- cd xfce-only
+- sudo chmod +x setup.sh
+- ./setup.sh
+- 
+- After reboot
+- cd xfce-only
+- sudo chmod +x configure.sh
+- ./configure.sh
