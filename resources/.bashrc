@@ -185,7 +185,7 @@ escalation() {
     } | lolcat
 }
 
-export PATH="$HOME/.local/bin:$PATH"
+
 alias cls='clear'
 alias python='python3'
 alias ifconfig='/sbin/ifconfig'
@@ -197,5 +197,12 @@ alias wget="wget -U 'noleak'"
 alias curl="curl --user-agent 'noleak'"
 alias neofetch="neofetch | lolcat"
 alias whoami="whoami | lolcat"
-alias anonftp='clear; target=$(zenity --entry --text "What is your target?" --title "Set Target Variable" 2>/dev/null) && echo "You have chosen: $target" && mkdir -p "$target" && cd "$target" && wget -m --no-passive ftp://anonymous:anonymous@"$target" && ls -lah'
-alias portscan='clear; target=$(zenity --entry --text "What is your target?" --title "Set Target Variable" 2>/dev/null) && echo "You have chosen: $target" && rustscan --accessible --ulimit 5000 -t 20000 -a $target -- -A -sC -sV -Pn'
+
+# FTP anonymous connect + Download
+alias ftpscan='clear; target=$(zenity --entry --text "What is your target?" --title "Set Target Variable" 2>/dev/null) && echo "You have chosen: $target" && mkdir -p "$target" && cd "$target" && timeout 10 wget -m --no-passive ftp://anonymous:anonymous@"$target" && ls -lah'
+
+# Directory scan alias
+alias dirscan='target=$(zenity --entry --text "Who is your target Hacker?" --title "Directory Scan" --width=300 --height=150 --icon="info" --entry-text "127.0.0.1" 2>/dev/null) && echo "Welcome Hackerman..." | lolcat && echo "You have chosen: $target" && feroxbuster -u $target -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt --threads 200 -x js,html,php,txt'
+
+# Port scan alias with rustscan
+alias portscan='clear; target=$(zenity --entry --text "What is your target?" --title "Set Target Variable" 2>/dev/null) && echo "Welcome Hackerman..." | lolcat && echo "You have chosen: $target" && rustscan --accessible --ulimit 5000 -t 20000 -a $target -- -A -sC -sV -Pn -v'
