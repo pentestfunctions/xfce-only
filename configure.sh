@@ -21,20 +21,24 @@ install_tools() {
     local packages=(
         libssl-dev
         enum4linux python3-pip crackmapexec getallurls dirsearch exploitdb getsploit feroxbuster kerberoast payloadsallthethings pdf-parser peirates pipal pspy radare2 responder smtp-user-enum snmpcheck snmpenum subfinder
-        gpgv2 autoconf bison build-essential postgresql libaprutil1 libgmp3-dev libpcap-dev openssl libpq-dev libreadline-dev libsqlite3-dev libssl-dev locate libsvn1 libtool libxml2 libxml2-dev libxslt1-dev wget libyaml-dev libncurses-dev postgresql-contrib xsel zlib1g zlib1g-dev curl
+        gpgv2 autoconf bison build-essential ftp masscan postgresql libaprutil1 libgmp3-dev libpcap-dev openssl libpq-dev libreadline-dev libsqlite3-dev libssl-dev locate libsvn1 libtool libxml2 libxml2-dev libxslt1-dev wget libyaml-dev libncurses-dev postgresql-contrib xsel zlib1g zlib1g-dev curl
         curl dos2unix outguess pdfcrack wireshark smbclient samba smbmap socat ssdeep samdump2 python3-scapy proxychains rdesktop proxychains4 steghide exiv2 foremost nbtscan ophcrack hashid libimage-exiftool-perl sucrack stegcracker fcrackzip net-tools binwalk zenity john 7zip nmap hashcat wfuzz hydra ffuf whatweb wafw00f cupp cewl crunch dirb gobuster htop lolcat sqlmap ruby-dev neofetch openvpn sublist3r
     )
 
     for package in "${packages[@]}"; do
         if ! dpkg -s "$package" &> /dev/null; then
-            echo -e "\033[0;32mInstalling $package...\033[0m"
-            sudo apt install "$package" -y || echo "Failed to install $package"
+            sudo apt install "$package" -y > /dev/null 2>&1 && echo -e "\033[0;32mInstalled $package\033[0m" || echo "Failed to install $package"
         else
             echo -e "\033[0;32m$package is already installed.\033[0m"
         fi
     done
-}
 
+    if [ ! -x "$(command -v wpscan)" ]; then
+        sudo gem install wpscan > /dev/null 2>&1 && echo -e "\033[0;32mInstalled wpscan\033[0m" || echo "Failed to install wpscan"
+    else
+        echo -e "\033[0;32mwpscan is already installed.\033[0m"
+    fi
+}
 
 link_john_scripts() {
     # Define the source directory
@@ -46,7 +50,7 @@ link_john_scripts() {
     else
         echo "Setting up John The Ripper."
         cd /tmp
-        git clone https://gitlab.com/kalilinux/packages/john.git
+        git clone https://github.com/openwall/john.git
         cd john/src
         ./configure && make
         sudo mkdir -p "$source_dir"
@@ -155,9 +159,16 @@ link_john_scripts() {
         zed2john.py
     )
 
+    # Check if the symlink doesn't exist before creating it
+    if [ ! -e "/usr/bin/python" ]; then
+        sudo ln -s /usr/bin/python3 /usr/bin/python
+    else
+       echo -e "\033[0;32mSymlink /usr/bin/python already exists.\033[0m"
+    fi
+
     # Loop through each script and create a symbolic link if it doesn't exist
     for script in "${scripts[@]}"; do
-        local target_link="/usr/bin/${script}"
+        local target_link="/usr/bin/$(basename "${script}" .py)"
         if [ ! -L "${target_link}" ] && [ ! -e "${target_link}" ]; then
             echo -e "\033[0;32mLinking ${script}...\033[0m"
             sudo ln -s "${source_dir}/${script}" "${target_link}"
@@ -179,7 +190,6 @@ install_brave_browser() {
     echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list
     sudo apt update
     sudo apt install brave-browser -y
-    sudo apt remove firefox-esr -y
     echo -e "\033[0;32mBrave Browser has been installed and Firefox ESR has been removed.\033[0m"
 }
 
@@ -285,7 +295,6 @@ fix_python_environment() {
 function terminal_transparency() {
     cd "$initial_dir"
     cp resources/terminalrc ~/.config/xfce4/terminal/terminalrc
-    sudo apt install xfce4-terminal -y
     mkdir -p ~/.config/xfce4/terminal
     touch ~/.config/xfce4/terminal/terminalrc
 }
@@ -317,12 +326,54 @@ install_dracula_theme() {
     xfconf-query -c xsettings -p /Net/IconThemeName -s "Dracula"
 }
 
-sudo apt remove libreoffice-* -y > /dev/null 2>&1
-sudo apt autoremove -y > /dev/null 2>&1
-sudo apt autoclean -y > /dev/null 2>&1
-sudo apt install xfce4-terminal -y > /dev/null 2>&1 && echo -e "\033[0;32mxfce4-terminal installation was successful\033[0m" || echo "Installation failed"
-sudo apt install burpsuite mousepad -y
+add_panel_items() {
+    local panel_id=$(xfconf-query -c xfce4-panel -l -v 2>/dev/null | grep "applicationsmenu" | awk '{print $1}')
+    if ! xfconf-query -c xfce4-panel -p $panel_id -l 2>/dev/null | grep -q "whiskermenu"; then
+        xfconf-query -c xfce4-panel -p $panel_id -n -t string -s "whiskermenu" 2>/dev/null
+        xfce4-panel -r
+    fi
+    echo -e "\033[0;32mWhiskermenu setup completed\033[0m"
+}
 
+install_screenpen() {
+    pip install --quiet screenpen
+    local result=$?
+    if [ $result -eq 0 ]; then
+        echo -e "\033[0;32mscreenpen was installed successfully.\033[0m"
+    fi
+}
+
+initial_setup() {
+    sudo apt remove libreoffice-* -y > /dev/null 2>&1
+    sudo apt autoremove -y > /dev/null 2>&1
+    sudo apt autoclean -y > /dev/null 2>&1
+    sudo apt install xfce4-terminal -y > /dev/null 2>&1 && echo -e "\033[0;32mxfce4-terminal installation was successful\033[0m" || echo "xfce4-terminal installation failed"
+    sudo apt install burpsuite mousepad -y > /dev/null 2>&1 && echo -e "\033[0;32mburpsuite and mousepad installation was successful\033[0m" || echo "Installation of burpsuite and mousepad failed"
+}
+
+
+install_stegseek() {
+    if dpkg -l stegseek &> /dev/null; then
+        echo -e "\033[0;32mstegseek is already installed.\033[0m"
+        return 0
+    fi
+
+    wget https://github.com/RickdeJager/stegseek/releases/download/v0.6/stegseek_0.6-1.deb -O /tmp/stegseek_0.6-1.deb
+    sudo apt install /tmp/stegseek_0.6-1.deb
+}
+
+initial_setup
+
+# Customization Settings:
+install_wallpaper_settings
+terminal_transparency
+install_dracula_theme
+add_panel_items
+cp resources/.bashrc ~/.bashrc
+sudo cp resources/xfce4-panel-settings.tar.gz /tmp/
+tar -xzf /tmp/xfce4-panel-settings.tar.gz -C ~/.config/xfce4/panel
+
+# Tools and Accessories
 install_tools
 install_rust_scan
 install_brave_browser
@@ -331,28 +382,14 @@ install_joplin
 install_seclists
 install_metasploit
 install_hosting_folder
-[ -x "$(command -v wpscan)" ] && echo -e "\033[0;32mwpscan is already installed\033[0m" || (sudo gem install wpscan && echo -e "\033[0;32mInstallation successful\033[0m")
-terminal_transparency
+install_screenpen
+install_stegseek
 
-install_dracula_theme
-
-# Replace applications menu button with WhiskerMenu
-if xfconf-query -c xfce4-panel -p $(xfconf-query -c xfce4-panel -l -v | grep "applicationsmenu" | awk '{print $1}') -n -t string -s "whiskermenu" && xfce4-panel -r; then
-    echo -e "\033[0;32mWhiskermenu most likely already in place\033[0m"
-else
-    echo -e "\033[0;32mWhiskermenu should be setup correctly\033[0m"
-fi
-
-pip install screenpen
 
 cd "$initial_dir"
-cp resources/.bashrc ~/.bashrc
-sudo cp resources/xfce4-panel-settings.tar.gz /tmp/
-tar -xzf /tmp/xfce4-panel-settings.tar.gz -C ~/.config/xfce4/panel
-install_wallpaper_settings
+echo "========================================="
 echo "All Tools seem to be installed!"
 echo "Make sure you source your .bashrc file!"
-echo "========================================="
 echo "source ~/.bashrc"
 echo "========================================="
 echo "We also recommend connecting with RDP using the IPv4 or hostname, your hostname is:"
